@@ -1,0 +1,51 @@
+BasedOnStyle: Google
+
+# Indentation
+IndentWidth: 4
+UseTab: Never
+
+# Line ending
+DeriveLineEnding: false
+LineEnding: LF
+InsertNewlineAtEOF: true
+
+# Line wrapping
+ColumnLimit: 120
+BinPackArguments: false
+BinPackParameters: false
+
+# Spacing and alignment
+SpaceAfterCStyleCast: true
+DerivePointerAlignment: false
+PointerAlignment: Left
+ReferenceAlignment: Left
+SeparateDefinitionBlocks: Always
+SpacesBeforeTrailingComments: 1
+Cpp11BracedListStyle: false
+SpacesInLineCommentPrefix:
+  Maximum: 1
+
+# No short tokens on single line
+AllowShortLoopsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortBlocksOnASingleLine: Never
+AllowShortLambdasOnASingleLine: None
+AllowShortFunctionsOnASingleLine: None
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortCompoundRequirementOnASingleLine: false
+
+# Braces
+RemoveBracesLLVM: false
+InsertBraces: true
+
+# No empty lines in these cases
+KeepEmptyLines:
+  AtEndOfFile: false
+  AtStartOfBlock: false
+  AtStartOfFile: false
+
+# Sort headers. NOTE: this may break code when headers depend on each other in
+# a specific order. To prevent that simply add an empty line between those
+# headers so they won't get sorted.
+SortIncludes: CaseInsensitive
