@@ -56,47 +56,7 @@ err_t post_response(void* arg, struct tcp_pcb* pcb, struct pbuf* p, err_t err) {
     return ERR_OK;
 }
 
-err_t on_connected(void* arg, struct tcp_pcb* pcb, err_t err) {
-    if (err != ERR_OK) {
-        printf("Erro ao conectar: %d\n", err);
-        failed = true;
-        return err;
-    }
-
-    connected = true;
-    return ERR_OK;
-}
-
-void post_json(char* json, char* endpoint) {
-    struct tcp_pcb* pcb = tcp_new();
-
-    if (!pcb) {
-        printf("Erro ao criar PCB TCP\n");
-        return;
-    }
-
-    ip_addr_t server_ip;
-    ipaddr_aton(SERVER_IP, &server_ip);
-
-    connected = false;
-    failed = false;
-    err_t err = tcp_connect(pcb, &server_ip, SERVER_PORT, on_connected);
-    if (err != ERR_OK) {
-        printf("Erro ao iniciar conexão: %d\n", err);
-        tcp_abort(pcb);
-        return;
-    }
-
-    for (int i = 0; i < 200; i++) {
-        cyw43_arch_poll();
-
-        if (connected || failed) {
-            break;
-        }
-
-        sleep_ms(10);
-    }
-
+void foo(char* json, char* endpoint, struct tcp_pcb* pcb, err_t err) {
     if (failed || !connected) {
         printf("Conexão falhou ou expirou\n");
         tcp_abort(pcb);
@@ -132,6 +92,49 @@ void post_json(char* json, char* endpoint) {
     tcp_output(pcb);
     printf("POST enviado com o seguinte JSON: %s\n", json);
     tcp_close(pcb);
+}
+
+typedef struct http_context {
+    char* endpoint;
+    char* json;
+} HttpContext;
+
+err_t on_connected(void* arg, struct tcp_pcb* pcb, err_t err) {
+    HttpContext* ctx = (HttpContext*) arg;
+
+    if (err != ERR_OK) {
+        printf("Erro ao iniciar conexão: %d\n", err);
+        tcp_abort(pcb);
+        return err;
+    }
+
+    connected = true;
+    foo(ctx->json, ctx->endpoint, pcb, err);
+
+    return ERR_OK;
+}
+
+void post_json(char* json, char* endpoint) {
+    HttpContext ctx = { .json = json, .endpoint = endpoint };
+    struct tcp_pcb* pcb = tcp_new();
+
+    if (!pcb) {
+        printf("Erro ao criar PCB TCP\n");
+        return;
+    }
+
+    ip_addr_t server_ip;
+    ipaddr_aton(SERVER_IP, &server_ip);
+
+    connected = false;
+    failed = false;
+    tcp_arg(pcb, &ctx);
+    err_t err = tcp_connect(pcb, &server_ip, SERVER_PORT, on_connected);
+
+    while (!connected && !failed) {
+        cyw43_arch_poll();
+        sleep_ms(10);
+    }
 }
 
 void post_joystick_info(JoystickInfo info) {
